@@ -28,5 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+   - Training reference: see docs/training-knowledge.md for exercise, volume, running and mobility guidance. Follow it when adding or changing workouts and features.
 
 - Data (workouts, sessions) is stored in browser localStorage via src/lib/store.ts — single-user personal app, no backend needed.
