@@ -28,3 +28,5 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Data (workouts, sessions) is stored in browser localStorage via src/lib/store.ts — single-user personal app, no backend needed.
