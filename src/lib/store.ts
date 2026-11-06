@@ -76,3 +76,21 @@ export function lastSetsFor(sessions: Session[], exerciseId: string): SetEntry[]
 export function topWeight(sets: SetEntry[]) {
   return sets.reduce((m, s) => Math.max(m, s.weight), 0);
 }
+
+export interface BodyWeight { id: string; date: string; kg: number }
+export function useBodyWeight() {
+  const [b, set, ready] = useStored<BodyWeight[]>("gym.bodyweight.v1", []);
+  return {
+    entries: b,
+    ready,
+    add: (kg: number) => set([...b, { id: crypto.randomUUID(), date: new Date().toISOString(), kg }]),
+    remove: (id: string) => set(b.filter((x) => x.id !== id)),
+  };
+}
+
+export function exerciseHistory(sessions: Session[], exerciseId: string) {
+  return [...sessions].reverse().flatMap((s) => {
+    const e = s.entries.find((e) => e.exerciseId === exerciseId);
+    return e && e.sets.length ? [{ date: s.date, w: topWeight(e.sets) }] : [];
+  });
+}

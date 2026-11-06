@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { byId } from "@/lib/exercises";
-import { topWeight, useSessions } from "@/lib/store";
+import { topWeight, useBodyWeight, useSessions } from "@/lib/store";
+import { Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/progress")({
   head: () => ({
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/progress")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { ex?: string } => ({ ex: typeof s.ex === "string" ? s.ex : undefined }),
   component: ProgressPage,
 });
 
@@ -31,12 +33,15 @@ function ProgressPage() {
     );
     return [...m.entries()];
   }, [sessions]);
-  const [sel, setSel] = useState<string | null>(null);
+  const { ex } = Route.useSearch();
+  const [sel, setSel] = useState<string | null>(ex ?? null);
   const active = series.find(([id]) => id === sel) ?? series[0];
 
   return (
     <Shell>
       <h1 className="font-display px-5 pt-10 text-6xl">Progress</h1>
+      <BodyWeightSection />
+      <h2 className="font-display px-5 pt-8 text-3xl">By exercise</h2>
       {!active ? (
         <p className="px-5 pt-4 text-muted-foreground">Finish a workout to start seeing your progress.</p>
       ) : (
@@ -91,5 +96,49 @@ function Chart({ points }: { points: { date: string; w: number }[] }) {
         </g>
       ))}
     </svg>
+  );
+}
+
+function BodyWeightSection() {
+  const { entries, add, remove } = useBodyWeight();
+  const [v, setV] = useState("");
+  const last = entries.at(-1);
+  const change = last && entries[0] ? +(last.kg - entries[0].kg).toFixed(1) : 0;
+  const save = () => {
+    const n = parseFloat(v);
+    if (n > 0) { add(n); setV(""); }
+  };
+  return (
+    <section className="px-5 pt-4">
+      <div className="card-lift p-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-display text-3xl">Body weight</h2>
+          {last && (
+            <span>
+              <span className="font-display text-2xl">{last.kg} kg</span>
+              {entries.length > 1 && <span className="ml-2 text-xs text-muted-foreground">{change >= 0 ? "+" : ""}{change} since start</span>}
+            </span>
+          )}
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input inputMode="decimal" className="input-lift flex-1" placeholder="Today's weight (kg)" value={v}
+            onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} />
+          <button onClick={save} className="rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground">Log</button>
+        </div>
+        {entries.length > 0 && <div className="mt-4"><Chart points={entries.map((e) => ({ date: e.date, w: e.kg }))} /></div>}
+        {entries.length > 0 && (
+          <ul className="mt-2 max-h-40 divide-y divide-border overflow-y-auto text-sm">
+            {[...entries].reverse().map((e) => (
+              <li key={e.id} className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground">{new Date(e.date).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" })}</span>
+                <span className="flex items-center gap-3">{e.kg} kg
+                  <button aria-label="Delete entry" onClick={() => remove(e.id)} className="text-muted-foreground"><Trash2 className="h-4 w-4" /></button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }

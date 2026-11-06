@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, Play, Plus, Repeat, RotateCcw, Trash2, X } from "lucide-react";
+import { LineChart, ArrowLeft, Check, Play, Plus, Repeat, RotateCcw, Trash2, X } from "lucide-react";
 import { Shell } from "@/components/Shell";
 import { byId, GROUP_LABEL, LIBRARY, type Group } from "@/lib/exercises";
-import { lastSetsFor, useSessions, useWorkouts, type SetEntry } from "@/lib/store";
+import { exerciseHistory, lastSetsFor, useSessions, useWorkouts, type SetEntry } from "@/lib/store";
 
 export const Route = createFileRoute("/workout/$id")({
   head: () => ({
@@ -101,6 +101,9 @@ function WorkoutPage() {
           if (!ex) return null;
           const sets = setsFor(exId);
           const last = lastSetsFor(sessions, exId);
+          const hist = exerciseHistory(sessions, exId);
+          const pb = hist.length ? Math.max(...hist.map((h) => h.w)) : 0;
+          const gain = hist.length > 1 ? hist[hist.length - 1]!.w - hist[0]!.w : 0;
           return (
             <section key={exId} className="card-lift p-4">
               <div className="flex items-start gap-3">
@@ -112,7 +115,11 @@ function WorkoutPage() {
                   <p className="text-xs text-muted-foreground">
                     {last ? `Last time: ${last.map((s) => `${s.weight}×${s.reps}`).join(", ")}` : "First time"}
                   </p>
+                  {hist.length > 0 && (
+                    <p className="text-xs text-primary">PB {pb} kg · {hist.length} session{hist.length > 1 ? "s" : ""}{hist.length > 1 ? ` · ${gain >= 0 ? "+" : ""}${gain} kg` : ""}</p>
+                  )}
                 </div>
+                <Link to="/progress" search={{ ex: exId }} aria-label="View progress" className="p-2 text-muted-foreground hover:text-primary"><LineChart className="h-4 w-4" /></Link>
                 <button aria-label="Swap exercise" onClick={() => setPicker({ mode: "swap", target: exId })} className="p-2 text-muted-foreground hover:text-primary"><Repeat className="h-4 w-4" /></button>
                 <button aria-label="Remove exercise" onClick={() => update(w.id, (t) => ({ ...t, exerciseIds: t.exerciseIds.filter((x) => x !== exId) }))} className="p-2 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
               </div>
