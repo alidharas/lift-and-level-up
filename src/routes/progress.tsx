@@ -37,7 +37,7 @@ function ProgressPage() {
   return (
     <Shell>
       <h1 className="font-display px-5 pt-10 text-6xl">Progress</h1>
-      {!series.length ? (
+      {!active ? (
         <p className="px-5 pt-4 text-muted-foreground">Finish a workout to start seeing your progress.</p>
       ) : (
         <div className="px-5 pt-4">
@@ -51,7 +51,7 @@ function ProgressPage() {
           <ul className="mt-2 divide-y divide-border">
             {series.map(([id, pts]) => {
               const best = Math.max(...pts.map((p) => p.w));
-              const diff = pts.at(-1)!.w - pts[0].w;
+              const diff = (pts.at(-1)?.w ?? 0) - (pts[0]?.w ?? 0);
               return (
                 <li key={id} className="flex items-center justify-between py-3">
                   <button className="text-left" onClick={() => setSel(id)}>{byId(id)?.name ?? id}</button>

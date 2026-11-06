@@ -70,6 +70,7 @@ export function lastSetsFor(sessions: Session[], exerciseId: string): SetEntry[]
     const e = s.entries.find((e) => e.exerciseId === exerciseId);
     if (e && e.sets.length) return e.sets;
   }
+  return undefined;
 }
 
 export function topWeight(sets: SetEntry[]) {
